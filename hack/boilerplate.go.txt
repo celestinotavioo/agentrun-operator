@@ -1,0 +1,3 @@
+/*
+Copyright 2026 Otavio Celestino. Licensed under the MIT License.
+*/

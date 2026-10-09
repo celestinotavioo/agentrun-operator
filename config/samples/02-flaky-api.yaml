@@ -1,0 +1,16 @@
+# The API answers 429 twice: the controller retries the SAME model with exponential backoff.
+apiVersion: agents.devfest.dev/v1alpha1
+kind: AgentRun
+metadata:
+  name: flaky-api
+  namespace: agents-demo
+  annotations:
+    agents.devfest.dev/mock-scenario: flaky
+spec:
+  model: gemini-pro-latest
+  fallbackModels: [gemini-flash-latest]
+  prompt: "Summarise yesterday's incidents for the payments team"
+  tools:
+    - mcp: k8s-readonly
+  budget: {maxTokens: 200000, maxCostUSD: "0.50"}
+  retryPolicy: {maxAttempts: 4, qualityThreshold: 0.7, backoffSeconds: 3}

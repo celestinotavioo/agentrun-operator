@@ -1,0 +1,8 @@
+# 06-real-life.yaml uses generateName, so it is applied with `kubectl create` (make random).
+resources:
+  - 00-namespace.yaml
+  - 01-triage-happy.yaml
+  - 02-flaky-api.yaml
+  - 03-hallucination.yaml
+  - 04-budget-buster.yaml
+  - 05-doomed.yaml

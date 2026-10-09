@@ -1,0 +1,16 @@
+# The primary model invents a kubectl flag. The eval scores it low → FallingBack to the next model.
+apiVersion: agents.devfest.dev/v1alpha1
+kind: AgentRun
+metadata:
+  name: hallucination
+  namespace: agents-demo
+  annotations:
+    agents.devfest.dev/mock-scenario: hallucinate
+spec:
+  model: gemini-pro-latest
+  fallbackModels: [gemini-flash-latest, gemini-flash-lite-latest]
+  prompt: "How do I restart a stuck CronJob without losing history?"
+  tools:
+    - mcp: docs
+  budget: {maxTokens: 200000, maxCostUSD: "0.50"}
+  retryPolicy: {maxAttempts: 3, qualityThreshold: 0.7}

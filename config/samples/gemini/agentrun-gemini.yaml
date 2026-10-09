@@ -1,0 +1,17 @@
+# A REAL run against the Gemini API. Needs: make gemini-key KEY=<your key>
+# Egress opens to DNS + 443 only; the API key comes from Secret agentrun-gemini.
+apiVersion: agents.devfest.dev/v1alpha1
+kind: AgentRun
+metadata:
+  generateName: gemini-
+  namespace: agents-demo
+spec:
+  provider: gemini
+  model: gemini-flash-latest
+  fallbackModels: [gemini-flash-lite-latest]
+  prompt: |
+    A Kubernetes pod is in CrashLoopBackOff right after a deploy. Give a short, numbered
+    triage checklist with the exact kubectl commands to run. Do not invent flags.
+  budget: {maxTokens: 20000, maxCostUSD: "0.02"}
+  timeout: 3m
+  retryPolicy: {maxAttempts: 3, qualityThreshold: 0.7, backoffSeconds: 5}

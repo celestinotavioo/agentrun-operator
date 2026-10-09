@@ -1,0 +1,20 @@
+# The AgentRun from the slides. Scenario "happy": the golden path.
+apiVersion: agents.devfest.dev/v1alpha1
+kind: AgentRun
+metadata:
+  name: triage-issue-4211
+  namespace: agents-demo
+  annotations:
+    agents.devfest.dev/mock-scenario: happy
+spec:
+  model: gemini-pro-latest
+  fallbackModels: [gemini-flash-latest]
+  prompt: "Triage GitHub issue 4211"
+  tools:
+    - mcp: github          # allow-list
+    - mcp: k8s-readonly
+  budget:
+    maxTokens: 200000
+    maxCostUSD: "0.50"
+  timeout: 10m
+  retryPolicy: {maxAttempts: 3, qualityThreshold: 0.7}

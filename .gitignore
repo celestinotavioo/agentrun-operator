@@ -1,0 +1,12 @@
+bin/
+*.test
+*.out
+cover.html
+.DS_Store
+
+# terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+deploy/gcp/.project

@@ -1,0 +1,15 @@
+# The agent loops re-reading its own context. It stops itself at the budget → BudgetExceeded.
+apiVersion: agents.devfest.dev/v1alpha1
+kind: AgentRun
+metadata:
+  name: budget-buster
+  namespace: agents-demo
+  annotations:
+    agents.devfest.dev/mock-scenario: budget-buster
+spec:
+  model: gemini-pro-latest
+  prompt: "Read every log line of the last 30 days and find anything weird"
+  tools:
+    - mcp: k8s-readonly
+  budget: {maxTokens: 500000, maxCostUSD: "0.25"}
+  retryPolicy: {maxAttempts: 3}

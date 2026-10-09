@@ -1,0 +1,7 @@
+# Pod Security "restricted" is enforced: every attempt Job must be properly sandboxed to even start.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: agents-demo
+  labels:
+    pod-security.kubernetes.io/enforce: restricted

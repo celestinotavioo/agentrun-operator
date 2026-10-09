@@ -1,0 +1,15 @@
+# No scenario annotation: the mock behaves like real life — non-deterministic.
+# Apply it a few times (make random) and compare the outcomes.
+apiVersion: agents.devfest.dev/v1alpha1
+kind: AgentRun
+metadata:
+  generateName: real-life-
+  namespace: agents-demo
+spec:
+  model: gemini-pro-latest
+  fallbackModels: [gemini-flash-latest, gemini-flash-lite-latest]
+  prompt: "Is the payments API healthy? If not, why?"
+  tools:
+    - mcp: k8s-readonly
+    - mcp: github
+  retryPolicy: {maxAttempts: 4, qualityThreshold: 0.75, backoffSeconds: 2}

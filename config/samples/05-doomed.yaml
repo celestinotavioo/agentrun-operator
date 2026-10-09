@@ -1,0 +1,15 @@
+# Every model returns broken tool calls. Fallback after fallback until no models are left → Failed.
+apiVersion: agents.devfest.dev/v1alpha1
+kind: AgentRun
+metadata:
+  name: doomed
+  namespace: agents-demo
+  annotations:
+    agents.devfest.dev/mock-scenario: doomed
+spec:
+  model: gemini-pro-latest
+  fallbackModels: [gemini-flash-latest, gemini-flash-lite-latest]
+  prompt: "Open a PR that fixes the flaky test in payments-api"
+  tools:
+    - mcp: github
+  retryPolicy: {maxAttempts: 5}

@@ -1,0 +1,318 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.22.0
+  name: agentruns.agents.devfest.dev
+spec:
+  group: agents.devfest.dev
+  names:
+    categories:
+    - agents
+    kind: AgentRun
+    listKind: AgentRunList
+    plural: agentruns
+    shortNames:
+    - ar
+    - ars
+    singular: agentrun
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    - jsonPath: .status.activeModel
+      name: Model
+      type: string
+    - jsonPath: .status.attempt
+      name: Attempt
+      type: integer
+    - jsonPath: .status.tokensUsed
+      name: Tokens
+      type: integer
+    - jsonPath: .status.costUSD
+      name: Cost
+      type: string
+    - jsonPath: .status.quality
+      name: Quality
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: AgentRun is a single, bounded, observable execution of an AI
+          agent.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: 'AgentRunSpec is the desired state: what to ask, with which
+              model, under which limits.'
+            properties:
+              budget:
+                default: {}
+                description: Budget caps what a run may spend, across all attempts.
+                properties:
+                  maxCostUSD:
+                    default: "0.50"
+                    description: MaxCostUSD is the dollar ceiling for the whole run,
+                      as a decimal string.
+                    pattern: ^\d+(\.\d{1,6})?$
+                    type: string
+                  maxTokens:
+                    default: 200000
+                    description: MaxTokens is the total token budget (input + output)
+                      for the whole run.
+                    format: int64
+                    minimum: 1
+                    type: integer
+                type: object
+              fallbackModels:
+                description: FallbackModels are tried in order when quality drops
+                  or the model fails hard.
+                items:
+                  type: string
+                type: array
+              model:
+                description: Model is the primary model.
+                minLength: 1
+                type: string
+              prompt:
+                minLength: 1
+                type: string
+              provider:
+                default: mock
+                description: Provider selects which LLM backend the sandboxed agent
+                  talks to.
+                enum:
+                - mock
+                - gemini
+                type: string
+              retryPolicy:
+                default: {}
+                description: RetryPolicy bounds attempts and defines the quality gate.
+                properties:
+                  backoffSeconds:
+                    default: 3
+                    description: BackoffSeconds is the base for exponential backoff
+                      between transient retries.
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  maxAttempts:
+                    default: 3
+                    description: MaxAttempts across all models (retries and fallbacks
+                      both consume one).
+                    format: int32
+                    maximum: 10
+                    minimum: 1
+                    type: integer
+                  qualityThreshold:
+                    default: 0.7
+                    description: QualityThreshold is the minimum eval score (0..1)
+                      for an answer to count as a success.
+                    maximum: 1
+                    minimum: 0
+                    type: number
+                type: object
+              sandbox:
+                description: Sandbox tunes the isolation of the attempt Jobs.
+                properties:
+                  runtimeClassName:
+                    description: RuntimeClassName, e.g. "gvisor". Leave empty on clusters
+                      without one (Docker Desktop, kind).
+                    type: string
+                type: object
+              timeout:
+                default: 10m
+                description: Timeout for the whole run, across all attempts.
+                type: string
+              tools:
+                items:
+                  description: MCPTool is an allow-listed MCP server the agent may
+                    call.
+                  properties:
+                    mcp:
+                      description: Name of the MCP server, e.g. "github" or "k8s-readonly".
+                      minLength: 1
+                      type: string
+                  required:
+                  - mcp
+                  type: object
+                type: array
+            required:
+            - model
+            - prompt
+            type: object
+          status:
+            description: AgentRunStatus is the observed state, written only by the
+              controller.
+            properties:
+              activeModel:
+                type: string
+              answer:
+                type: string
+              attempt:
+                format: int32
+                type: integer
+              attempts:
+                items:
+                  description: AttemptRecord is one append-only entry of the run ledger.
+                  properties:
+                    costUSD:
+                      type: string
+                    finishedAt:
+                      format: date-time
+                      type: string
+                    job:
+                      type: string
+                    model:
+                      type: string
+                    number:
+                      format: int32
+                      type: integer
+                    outcome:
+                      description: AttemptOutcome classifies how a single attempt
+                        ended.
+                      type: string
+                    quality:
+                      type: string
+                    reason:
+                      type: string
+                    startedAt:
+                      format: date-time
+                      type: string
+                    tokens:
+                      format: int64
+                      type: integer
+                  required:
+                  - job
+                  - model
+                  - number
+                  type: object
+                type: array
+              completedAt:
+                format: date-time
+                type: string
+              conditions:
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              costMicroUSD:
+                description: CostMicroUSD is the exact spend in millionths of a dollar;
+                  CostUSD is its display form.
+                format: int64
+                type: integer
+              costUSD:
+                type: string
+              message:
+                type: string
+              modelIndex:
+                format: int32
+                type: integer
+              nextAttemptAt:
+                format: date-time
+                type: string
+              observedGeneration:
+                format: int64
+                type: integer
+              phase:
+                description: AgentRunPhase is a coarse summary of where a run is in
+                  its lifecycle.
+                enum:
+                - Pending
+                - Running
+                - Retrying
+                - FallingBack
+                - Succeeded
+                - Failed
+                - BudgetExceeded
+                type: string
+              quality:
+                type: string
+              startedAt:
+                format: date-time
+                type: string
+              tokensUsed:
+                format: int64
+                type: integer
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

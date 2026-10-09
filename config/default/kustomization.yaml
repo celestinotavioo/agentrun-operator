@@ -1,0 +1,5 @@
+namespace: agentrun-system
+resources:
+  - ../crd
+  - ../rbac
+  - ../manager
