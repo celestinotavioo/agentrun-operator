@@ -25,7 +25,7 @@ spec:
   securityContext: {runAsNonRoot: true, runAsUser: 65532, seccompProfile: {type: RuntimeDefault}}
   containers:
     - name: probe
-      image: busybox:1.36
+      image: mirror.gcr.io/library/busybox:1.36
       command: ["sleep", "120"]
       securityContext:
         allowPrivilegeEscalation: false

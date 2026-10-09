@@ -1,7 +1,9 @@
 # One Dockerfile, two images:  --build-arg BIN=manager  |  --build-arg BIN=agent
 ARG GO_VERSION=1.27
+# mirror.gcr.io: Docker Hub images without Docker Hub rate limits (a room full of workshop laptops shares one IP).
+ARG GO_IMAGE=mirror.gcr.io/library/golang
 
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS build
+FROM --platform=$BUILDPLATFORM ${GO_IMAGE}:${GO_VERSION}-alpine AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
