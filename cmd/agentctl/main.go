@@ -29,6 +29,7 @@ Usage:
 
 Commands:
   watch                 live dashboard (default)
+  show                  presenter mode: the incident story, a live scoreboard and a report card
   launch <scenario>     create an AgentRun from a scenario ("all" launches every scenario)
   describe <name>       show the attempt ledger of a run
   scenarios             list the demo scenarios
@@ -83,6 +84,8 @@ func main() {
 	switch cmd {
 	case "watch":
 		err = tui.Run(tui.Options{Client: c, Namespace: *namespace, KubeContext: *kubeContext, Remote: remote})
+	case "show":
+		err = tui.RunShow(tui.Options{Client: c, Namespace: *namespace, KubeContext: *kubeContext, Remote: remote})
 	case "launch":
 		err = launch(c, *namespace, *name, args)
 	case "describe":

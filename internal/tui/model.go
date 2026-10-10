@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
 	eventsv1 "k8s.io/api/events/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	agentsv1 "github.com/celestinotavioo/agentrun-operator/api/v1alpha1"
@@ -84,10 +85,15 @@ func (m Model) fetch() tea.Cmd {
 			return s.runs[i].CreationTimestamp.Before(&s.runs[j].CreationTimestamp) ||
 				s.runs[i].CreationTimestamp.Equal(&s.runs[j].CreationTimestamp) && s.runs[i].Name < s.runs[j].Name
 		})
+		live := map[types.UID]bool{}
+		for _, r := range s.runs {
+			live[r.UID] = true
+		}
 		var evs eventsv1.EventList
 		if err := c.List(ctx, &evs, client.InNamespace(ns)); err == nil {
 			for _, e := range evs.Items {
-				if e.Regarding.Kind == "AgentRun" {
+				// Events outlive their runs by an hour; only show the ones of runs that still exist.
+				if e.Regarding.Kind == "AgentRun" && live[e.Regarding.UID] {
 					s.events = append(s.events, e)
 				}
 			}

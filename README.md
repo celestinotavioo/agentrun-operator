@@ -24,14 +24,29 @@ You need **Docker Desktop with Kubernetes enabled** (Settings → Kubernetes →
 make demo
 ```
 
-That one command checks your setup, builds both images, deploys the controller, launches the five demo scenarios and opens the live dashboard. Press `1`–`6` in the dashboard to launch more runs, `q` to quit.
+One command, and it is the talk's live demo: it checks the cluster, builds and deploys the operator if needed, and starts **the show**, a story in five acts:
+
+> 🚨 **Incident #4211:** the payments API returns 500 after a deploy, and on-call asks AI agents to triage it. In production, five things go wrong. Watch the operator handle each one.
+
+| act | what goes wrong | what the operator does |
+|---|---|---|
+| 1 golden path | nothing | one sandboxed Job, answer scored, `Succeeded` |
+| 2 rate limit | the API answers `429` twice | retries the same model with backoff, bounded |
+| 3 hallucination | the model invents a `kubectl` flag | the eval scores it 0.33, the quality gate blocks it, falls back to the next model |
+| 4 runaway agent | the agent loops on its own context | kill switch at the dollar budget → `BudgetExceeded` |
+| 5 broken models | every model returns broken tool calls | gives up after the last model → `Failed`, with a reason |
+
+Acts fire on their own every ~9 s (`space` fires the next one now, `p` pauses). A live scoreboard counts what the operator handled. When the story ends, a **report card** compares the naive `agent.py` loop with the operator, using the real numbers from the run. The whole show takes about a minute.
+
+**Before a talk**, run `make stage-check` once. It does a full rehearsal (deploy, every scenario asserted, sandbox proof) and prints a checklist. After it, `make demo` opens in seconds: no rebuild, no image downloads, and the LLM is mocked.
 
 Everything else is one `make` away — run `make` to see the menu:
 
 | | |
 |---|---|
 | `make doctor` | checks Docker, the cluster and the operator, with a fix for anything missing |
-| `make watch` | live terminal dashboard |
+| `make stage-check` | run once before a talk: full rehearsal + checklist |
+| `make watch` | free-play dashboard (keys 1–6 launch scenarios) |
 | `make samples` / `make random` | apply the scenarios / a non-deterministic "real life" run |
 | `make launch S=flaky` | launch one scenario (`S=all` for every one) |
 | `make get` · `make describe N=flaky-api` | printer columns from the slides · the attempt ledger of a run |

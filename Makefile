@@ -36,8 +36,12 @@ help: ## Show this help
 	@printf "\n  $(DIM)First time? → make demo$(RESET)\n\n"
 
 .PHONY: demo
-demo: export IN_DEMO := 1
-demo: doctor deploy reset samples watch ## One command: check, build, deploy, launch all scenarios, open the dashboard
+demo: agentctl ## The talk: incident story in 5 acts, live scoreboard, report card (sets up whatever is missing)
+	@TAG=$(TAG) bash hack/demo.sh
+
+.PHONY: stage-check
+stage-check: agentctl ## Run once before the talk: full rehearsal + checklist, so `make demo` is instant on stage
+	@TAG=$(TAG) bash hack/stage-check.sh
 
 .PHONY: doctor
 doctor: ## Check Docker, Kubernetes and the operator, with hints to fix anything missing
@@ -129,8 +133,8 @@ gke-up: ## Create everything on GCP and deploy: make gke-up PROJECT=<id> [BILLIN
 	@$(GKE) up
 
 .PHONY: gke-demo
-gke-demo: gke-ctx ## The demo on GKE: reset, launch all scenarios, open the dashboard
-	@$(GKE_ENV) $(MAKE) --no-print-directory reset samples watch KUBE_CONTEXT=$(GKE_CTX)
+gke-demo: gke-ctx agentctl ## The show on GKE: incident story, scoreboard, report card
+	@$(GKE_ENV) SKIP_DEPLOY=1 KUBE_CONTEXT=$(GKE_CTX) TAG=$(TAG) bash hack/demo.sh
 
 .PHONY: gke-watch
 gke-watch: gke-ctx ## Dashboard against the GKE cluster
