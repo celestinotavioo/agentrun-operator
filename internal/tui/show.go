@@ -316,10 +316,10 @@ func (s Show) reportView() string {
 	hallNaive, hallOp := "ships whatever the model said", "…"
 	if hall != nil && len(hall.Status.Attempts) > 0 {
 		if q := hall.Status.Attempts[0].Quality; q != "" {
-			hallNaive = "ships the hallucinated answer (q=" + q + ")"
+			hallNaive = "ships the hallucination (q=" + q + ")"
 		}
 		if hall.Status.Phase.IsTerminal() {
-			hallOp = fmt.Sprintf("blocked it, fell back to %s (q=%s)", hall.Status.ActiveModel, orDash(hall.Status.Quality))
+			hallOp = fmt.Sprintf("blocked → fallback to %s (q=%s)", strings.TrimSuffix(hall.Status.ActiveModel, "-latest"), orDash(hall.Status.Quality))
 		}
 	}
 	runOp := "…"
@@ -344,7 +344,7 @@ func (s Show) reportView() string {
 		{"hallucinated answer", hallNaive, hallOp},
 		{"runaway context loop", "no ceiling — keeps billing", runOp},
 		{"every model broken", "crash-loops on the same model", brokenOp},
-		{"blast radius", "your credentials, your network", fmt.Sprintf("%d attempts: non-root, read-only, no token, no egress", sc.attempts)},
+		{"blast radius", "your credentials, your network", fmt.Sprintf("%d attempts: non-root, read-only, no egress", sc.attempts)},
 		{"audit trail", "print()", "status ledger + Events + Prometheus"},
 	}
 	for _, rw := range rows {

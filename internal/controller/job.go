@@ -11,7 +11,6 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 
 	agentsv1 "github.com/celestinotavioo/agentrun-operator/api/v1alpha1"
@@ -22,10 +21,6 @@ const (
 	LabelRun     = "agents.devfest.dev/run"
 	LabelAttempt = "agents.devfest.dev/attempt"
 	LabelModel   = "agents.devfest.dev/model"
-
-	// GeminiSecretName holds the API key used when spec.provider is gemini.
-	GeminiSecretName = "agentrun-gemini"
-	GeminiSecretKey  = "api-key"
 )
 
 // JobName is deterministic per run incarnation and attempt, which makes Create idempotent
@@ -82,15 +77,6 @@ func BuildJob(run *agentsv1.AgentRun, attempt int32, model string, deadline time
 		{Name: protocol.EnvMaxCostMicro, Value: strconv.FormatInt(micro, 10)},
 		{Name: protocol.EnvScenario, Value: run.Annotations[protocol.ScenarioAnnotation]},
 		{Name: protocol.EnvSpeed, Value: opts.MockSpeed},
-	}
-	if run.Spec.Provider == agentsv1.ProviderGemini {
-		env = append(env, corev1.EnvVar{Name: protocol.EnvGeminiKey, ValueFrom: &corev1.EnvVarSource{
-			SecretKeyRef: &corev1.SecretKeySelector{
-				LocalObjectReference: corev1.LocalObjectReference{Name: GeminiSecretName},
-				Key:                  GeminiSecretKey,
-				Optional:             ptr.To(true),
-			},
-		}})
 	}
 	runtimeClass := run.Spec.Sandbox.RuntimeClassName
 	if runtimeClass == nil && opts.DefaultRuntimeClass != "" {
@@ -153,20 +139,8 @@ func BuildJob(run *agentsv1.AgentRun, attempt int32, model string, deadline time
 	}
 }
 
-// BuildNetworkPolicy denies all ingress and only allows the egress the provider needs.
-// Mock runs get no egress at all; Gemini runs get DNS + HTTPS.
+// BuildNetworkPolicy denies all ingress and all egress: the mock agent needs no network.
 func BuildNetworkPolicy(run *agentsv1.AgentRun) *networkingv1.NetworkPolicy {
-	var egress []networkingv1.NetworkPolicyEgressRule
-	if run.Spec.Provider == agentsv1.ProviderGemini {
-		udp, tcp := corev1.ProtocolUDP, corev1.ProtocolTCP
-		egress = []networkingv1.NetworkPolicyEgressRule{
-			{Ports: []networkingv1.NetworkPolicyPort{
-				{Protocol: &udp, Port: ptr.To(intstr.FromInt32(53))},
-				{Protocol: &tcp, Port: ptr.To(intstr.FromInt32(53))},
-			}},
-			{Ports: []networkingv1.NetworkPolicyPort{{Protocol: &tcp, Port: ptr.To(intstr.FromInt32(443))}}},
-		}
-	}
 	return &networkingv1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      run.Name + "-sandbox",
@@ -177,7 +151,7 @@ func BuildNetworkPolicy(run *agentsv1.AgentRun) *networkingv1.NetworkPolicy {
 			PodSelector: metav1.LabelSelector{MatchLabels: map[string]string{LabelRun: sanitizeLabel(run.Name)}},
 			PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeIngress, networkingv1.PolicyTypeEgress},
 			Ingress:     []networkingv1.NetworkPolicyIngressRule{},
-			Egress:      egress,
+			Egress:      []networkingv1.NetworkPolicyEgressRule{},
 		},
 	}
 }

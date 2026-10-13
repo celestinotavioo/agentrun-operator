@@ -1,4 +1,4 @@
-// Package scenarios builds ready-made AgentRuns for demos and workshops.
+// Package scenarios builds ready-made AgentRuns for the demo.
 package scenarios
 
 import (
@@ -26,16 +26,6 @@ var All = []Info{
 	{llm.ScenarioBudgetBuster, "the agent loops on its own context", "kill switch → BudgetExceeded"},
 	{llm.ScenarioDoomed, "every model returns broken tool calls", "FallingBack until no models left → Failed"},
 	{llm.ScenarioRandom, "real life: non-deterministic", "anything can happen"},
-}
-
-// Lookup finds a scenario by name.
-func Lookup(name string) (Info, bool) {
-	for _, s := range All {
-		if s.Name == name {
-			return s, true
-		}
-	}
-	return Info{}, false
 }
 
 // Build returns an AgentRun for the scenario. An empty name generates one.

@@ -40,7 +40,6 @@ const (
 	EnvMaxCostMicro = "AGENTRUN_REMAINING_COST_MICRO_USD"
 	EnvScenario     = "AGENTRUN_MOCK_SCENARIO"
 	EnvSpeed        = "AGENTRUN_MOCK_SPEED"
-	EnvGeminiKey    = "GEMINI_API_KEY"
 )
 
 // ScenarioAnnotation lets a demo pick a deterministic mock behaviour.

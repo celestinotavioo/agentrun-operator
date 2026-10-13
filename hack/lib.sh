@@ -22,7 +22,6 @@ die()  { fail "$*"; exit 1; }
 is_local_context() {
   case "$1" in
     docker-desktop|minikube|orbstack|rancher-desktop|colima*|kind-*|k3d-*) return 0 ;;
-    gke_*_agentrun-demo) return 0 ;;  # the dedicated cluster created by deploy/gcp/terraform
     *) return 1 ;;
   esac
 }

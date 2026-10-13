@@ -112,15 +112,10 @@ func CostMicroUSD(model string, in, out int64) int64 {
 }
 
 // New returns the provider by name.
-func New(name, apiKey string) (Provider, error) {
+func New(name string) (Provider, error) {
 	switch name {
 	case "", "mock":
 		return &Mock{}, nil
-	case "gemini":
-		if apiKey == "" {
-			return nil, fmt.Errorf("provider gemini needs %s (create it with: make gemini-key KEY=...)", "GEMINI_API_KEY")
-		}
-		return NewGemini(apiKey, ""), nil
 	default:
 		return nil, fmt.Errorf("unknown provider %q", name)
 	}

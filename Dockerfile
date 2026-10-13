@@ -1,6 +1,6 @@
 # One Dockerfile, two images:  --build-arg BIN=manager  |  --build-arg BIN=agent
 ARG GO_VERSION=1.27
-# mirror.gcr.io: Docker Hub images without Docker Hub rate limits (a room full of workshop laptops shares one IP).
+# mirror.gcr.io: Docker Hub images without Docker Hub rate limits (conference Wi-Fi shares one IP).
 ARG GO_IMAGE=mirror.gcr.io/library/golang
 
 FROM --platform=$BUILDPLATFORM ${GO_IMAGE}:${GO_VERSION}-alpine AS build

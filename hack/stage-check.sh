@@ -5,23 +5,19 @@ cd "$(dirname "$0")/.."
 
 printf '\n%s🎤 Stage check%s %s— full rehearsal before the talk%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
 
-step "1/5 Environment"
+step "1/4 Environment"
 bash hack/doctor.sh >/dev/null 2>&1 || { bash hack/doctor.sh; exit 1; }
 ok "doctor is green"
 
-step "2/5 Operator"
+step "2/4 Operator"
 make --no-print-directory -s deploy >/dev/null 2>&1 || { make --no-print-directory deploy; exit 1; }
 ok "built and deployed ($TAG)"
 
-step "3/5 Rehearsal (every scenario, asserted)"
+step "3/4 Rehearsal (every scenario, asserted)"
 bash hack/e2e.sh >/dev/null 2>&1 || { bash hack/e2e.sh; exit 1; }
 ok "all five scenarios land where the talk says they do"
 
-step "4/5 Sandbox proof (also caches the probe image)"
-bash hack/verify-sandbox.sh >/dev/null 2>&1 || { bash hack/verify-sandbox.sh; exit 1; }
-ok "non-root · read-only · no token · egress blocked"
-
-step "5/5 Clean stage"
+step "4/4 Clean stage"
 "${KUBECTL[@]}" -n agents-demo delete agentruns --all --wait=true >/dev/null 2>&1 || true
 ok "namespace agents-demo is empty"
 

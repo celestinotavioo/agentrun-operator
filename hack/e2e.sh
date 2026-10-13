@@ -15,10 +15,10 @@ expect() {
 }
 
 step "Preflight"
-"${KUBECTL[@]}" get crd agentruns.agents.devfest.dev >/dev/null 2>&1 || die "CRD not installed — run: make deploy"
+"${KUBECTL[@]}" get crd agentruns.agents.devfest.dev >/dev/null 2>&1 || die "CRD not installed — run: make stage-check"
 ready=$("${KUBECTL[@]}" -n agentrun-system get deploy agentrun-controller -o jsonpath='{.status.readyReplicas}' 2>/dev/null || true)
 if [[ "${ready:-0}" -lt 1 ]] && ! pgrep -f "cmd/manager|/manager --context" >/dev/null; then
-  die "no controller is running — run: make deploy   (or make run in another terminal)"
+  die "no controller is running — run: make stage-check"
 fi
 ok "CRD installed and a controller is running"
 
@@ -65,6 +65,6 @@ echo
 if [[ $failures -eq 0 ]]; then
   printf '%s✔ e2e passed%s\n' "$GREEN$BOLD" "$RESET"
 else
-  printf '%s✘ e2e failed (%d)%s — inspect with: make watch / make logs\n' "$RED$BOLD" "$failures" "$RESET"
+  printf '%s✘ e2e failed (%d)%s — inspect with: kubectl --context $KUBE_CONTEXT -n agents-demo get agentruns\n' "$RED$BOLD" "$failures" "$RESET"
   exit 1
 fi

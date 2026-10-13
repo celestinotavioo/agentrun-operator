@@ -3,9 +3,6 @@ package llm
 import (
 	"context"
 	"math/rand/v2"
-	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 )
 
@@ -52,40 +49,5 @@ func TestCost(t *testing.T) {
 	}
 	if PriceFor("gemini-flash-lite-latest") != (Price{0.10, 0.40}) {
 		t.Fatal("flash-lite must not be priced as flash")
-	}
-}
-
-func TestGeminiClassifiesErrors(t *testing.T) {
-	status := http.StatusTooManyRequests
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("x-goog-api-key") != "k" {
-			t.Errorf("api key not sent in header")
-		}
-		if status != http.StatusOK {
-			w.WriteHeader(status)
-			_, _ = w.Write([]byte(`{"error":{"code":429,"message":"quota","status":"RESOURCE_EXHAUSTED"}}`))
-			return
-		}
-		if strings.Contains(r.URL.Path, JudgeModel) {
-			_, _ = w.Write([]byte(`{"candidates":[{"content":{"parts":[{"text":"{\"score\": 0.83}"}]}}],"usageMetadata":{"promptTokenCount":50,"candidatesTokenCount":5}}`))
-			return
-		}
-		_, _ = w.Write([]byte(`{"candidates":[{"content":{"parts":[{"text":"answer"}]}}],"usageMetadata":{"promptTokenCount":100,"candidatesTokenCount":20,"thoughtsTokenCount":7}}`))
-	}))
-	defer srv.Close()
-	g := NewGemini("k", srv.URL)
-
-	_, err := g.Run(context.Background(), Request{Model: "gemini-pro-latest", Prompt: "p", RemainingTok: 10_000})
-	if e := Classify(err); err == nil || e.Kind != KindTransient {
-		t.Fatalf("429 must be transient, got %v", err)
-	}
-
-	status = http.StatusOK
-	resp, err := g.Run(context.Background(), Request{Model: "gemini-pro-latest", Prompt: "p", RemainingTok: 10_000})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resp.Text != "answer" || resp.Quality != 0.83 || resp.InputTokens != 150 || resp.OutputTokens != 32 {
-		t.Fatalf("unexpected response %+v", resp)
 	}
 }

@@ -54,7 +54,7 @@ func TestViewNeverOverflowsTheTerminal(t *testing.T) {
 func TestEmptyStateExplainsWhatToDo(t *testing.T) {
 	m := New(Options{Namespace: "agents-demo", KubeContext: "docker-desktop"})
 	m.loaded = true
-	if v := ansi.Strip(m.View()); !strings.Contains(v, "make samples") {
+	if v := ansi.Strip(m.View()); !strings.Contains(v, "make demo") {
 		t.Fatalf("empty dashboard should tell the user how to start:\n%s", v)
 	}
 }

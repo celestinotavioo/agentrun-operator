@@ -59,13 +59,13 @@ step "Operator"
 if "${KUBECTL[@]}" get crd agentruns.agents.devfest.dev >/dev/null 2>&1; then
   ok "CRD agentruns.agents.devfest.dev installed"
 else
-  warn "CRD not installed yet"; hint "make deploy  (or: make install)"
+  warn "CRD not installed yet"; hint "make demo installs it"
 fi
 if "${KUBECTL[@]}" -n agentrun-system get deploy agentrun-controller >/dev/null 2>&1; then
   ready=$("${KUBECTL[@]}" -n agentrun-system get deploy agentrun-controller -o jsonpath='{.status.readyReplicas}' 2>/dev/null)
-  if [[ "${ready:-0}" -ge 1 ]]; then ok "controller running in-cluster"; else warn "controller deployed but not ready"; hint "make logs"; fi
+  if [[ "${ready:-0}" -ge 1 ]]; then ok "controller running in-cluster"; else warn "controller deployed but not ready"; hint "kubectl -n agentrun-system logs deploy/agentrun-controller"; fi
 else
-  warn "controller not deployed"; hint "make deploy  (or run it locally: make run)"
+  warn "controller not deployed"; hint "make demo deploys it"
 fi
 
 echo

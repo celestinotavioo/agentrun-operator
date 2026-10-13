@@ -4,9 +4,7 @@ bin/
 cover.html
 .DS_Store
 
-# terraform
-.terraform/
-*.tfstate
-*.tfstate.*
-terraform.tfvars
-deploy/gcp/.project
+
+# IDEs
+.idea/
+.vscode/

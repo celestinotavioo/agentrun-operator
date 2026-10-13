@@ -72,7 +72,7 @@ func main() {
 	fmt.Printf("%s╰─%s\n", bold, reset)
 
 	res := protocol.Result{Model: req.Model}
-	p, err := llm.New(providerName, os.Getenv(protocol.EnvGeminiKey))
+	p, err := llm.New(providerName)
 	if err != nil {
 		finish(res, protocol.OutcomeFailed, err.Error())
 	}

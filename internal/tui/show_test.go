@@ -64,7 +64,7 @@ func TestReportCardUsesRealNumbers(t *testing.T) {
 	s := newShow(180)
 	s.report = true
 	v := ansi.Strip(s.View())
-	for _, want := range []string{"q=0.33", "gemini-flash-latest", "killed at $0.50", "2 retries with backoff", "tried 3 models", "accountable"} {
+	for _, want := range []string{"q=0.33", "fallback to gemini-flash (q=0.87)", "killed at $0.50", "2 retries with backoff", "tried 3 models", "accountable"} {
 		if !strings.Contains(v, want) {
 			t.Errorf("report card misses %q:\n%s", want, v)
 		}
@@ -83,7 +83,7 @@ func TestPrintShow(t *testing.T) {
 	if testing.Short() || !strings.Contains(strings.Join(os.Args, " "), "PrintShow") {
 		t.Skip("run with -run PrintShow -v to eyeball the screens")
 	}
-	for _, w := range []int{90, 140} {
+	for _, w := range []int{90, 120, 140} {
 		for _, report := range []bool{false, true} {
 			s := newShow(w)
 			s.report = report

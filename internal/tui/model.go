@@ -26,7 +26,6 @@ type Options struct {
 	Client      client.Client
 	Namespace   string
 	KubeContext string
-	Remote      bool
 }
 
 type snapshot struct {
@@ -55,12 +54,6 @@ type Model struct {
 // New builds the dashboard model.
 func New(opts Options) Model {
 	return Model{opts: opts, details: true, width: 120, height: 40}
-}
-
-// Run starts the dashboard in the alternate screen.
-func Run(opts Options) error {
-	_, err := tea.NewProgram(New(opts), tea.WithAltScreen()).Run()
-	return err
 }
 
 func (m Model) Init() tea.Cmd { return tea.Batch(m.fetch(), tick()) }
@@ -197,13 +190,6 @@ func (m Model) deleteSelected() tea.Cmd {
 	}
 }
 
-// Describe renders the detail panel of one run, for `agentctl describe`.
-func Describe(r *agentsv1.AgentRun) string {
-	m := New(Options{})
-	m.width = 130
-	return phaseBadge(r.Status.Phase, 0) + sSubtle.Render(fmt.Sprintf("  %s · %d tokens · %d attempt(s)", r.Status.CostUSD, r.Status.TokensUsed, r.Status.Attempt)) + "\n" + m.detail(r)
-}
-
 // ---------- view ----------
 
 const (
@@ -268,9 +254,6 @@ func (m Model) header() string {
 	}
 	active := counts[agentsv1.PhaseRunning] + counts[agentsv1.PhaseRetrying] + counts[agentsv1.PhaseFallingBack] + counts[agentsv1.PhasePending] + counts[""]
 	ctxStyle := lipgloss.NewStyle().Foreground(cGreen)
-	if m.opts.Remote {
-		ctxStyle = lipgloss.NewStyle().Foreground(cRed).Bold(true)
-	}
 	left := sTitle.Render("⎈ AgentRun Operator") + "  " +
 		sSubtle.Render("ctx ") + ctxStyle.Render(m.opts.KubeContext) +
 		sSubtle.Render("  ns ") + sBold.Render(m.opts.Namespace)
@@ -345,7 +328,7 @@ func (m Model) table() string {
 	}
 	b.WriteString(m.fit(sHeader.Render(head)) + "\n")
 	if len(m.snap.runs) == 0 {
-		b.WriteString(m.fit(sSubtle.Render("  no AgentRuns yet — press ")+sKey.Render("1-6")+sSubtle.Render(" to launch a scenario, or run ")+sKey.Render("make samples")) + "\n")
+		b.WriteString(m.fit(sSubtle.Render("  no AgentRuns yet — press ")+sKey.Render("1-6")+sSubtle.Render(" to launch a scenario, or run ")+sKey.Render("make demo")) + "\n")
 		return b.String()
 	}
 	for i := range m.snap.runs {

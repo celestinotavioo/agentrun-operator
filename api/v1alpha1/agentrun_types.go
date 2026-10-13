@@ -5,13 +5,10 @@ import (
 )
 
 // Provider selects which LLM backend the sandboxed agent talks to.
-// +kubebuilder:validation:Enum=mock;gemini
+// +kubebuilder:validation:Enum=mock
 type Provider string
 
-const (
-	ProviderMock   Provider = "mock"
-	ProviderGemini Provider = "gemini"
-)
+const ProviderMock Provider = "mock"
 
 // AgentRunPhase is a coarse summary of where a run is in its lifecycle.
 // +kubebuilder:validation:Enum=Pending;Running;Retrying;FallingBack;Succeeded;Failed;BudgetExceeded
